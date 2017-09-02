@@ -1,0 +1,51 @@
+#!/bin/bash
+# Huy Le
+# script name: reception
+# Assigment 1: a simple script to display basic information about the system
+
+# b. Greeting
+echo -e "What is your first and last name? \c" # -e enables interpretation of backslash-escaped characters
+read first last
+echo "Hello $first $last"
+echo
+
+# c.
+echo "Here are some basic information of your system:"
+cat /etc/os-release.
+echo
+
+# d.
+echo "Here are your last login sessions:"
+last | grep $USER
+echo
+
+# e.
+echo "Server available memory:"
+free | head -2 |  tail -1 | tr " " ":" | cut -d: -f38
+echo
+
+# f.
+echo "Your current running processes:"
+ps -ef | grep -v root | more
+echo
+
+# g.
+echo "Your IP address:"
+netstat -rn | tail -1 | tr " " ":" | cut -d: -f1
+echo
+
+# h.
+echo "Your current file system:"
+df -h | head -7 | tail -1 | tr " " ":" | cut -d: -f1,16
+echo
+
+# i.
+echo "All user IDs and owner:"
+cat /etc/passwd | cut -d: -f1,5
+echo
+
+# j. Goodbye
+echo "Good bye $first, "`date`"."
+echo
+
+exit 0
