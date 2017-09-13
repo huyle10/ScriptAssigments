@@ -1,0 +1,41 @@
+#!/bin/bash
+clear
+while true; do
+echo
+echo "Please select a menu item"
+echo
+echo "1) Display hostname and IP address"
+echo "2) Display all users currently on the system"
+echo "3) Display server IP address, netmask and broadcast addresses"
+echo "4) Enter a user's id and display all processes belong to the id"
+echo "5) Count how many login IDs on the server that are talking classes in 2017FA"
+echo "6) Exit program"
+echo
+
+echo -e "Enter selection : \c"
+read CHOICE
+echo
+case $CHOICE in
+1) 
+echo Hostname && hostname && echo IP Address && hostname -I
+;;
+2) 
+w | cut -d " " -f 1
+;;
+3) nmcli dev show $(ifconfig | head -1 | cut -d : -f 1) | grep IP4
+;;
+4) echo -e "Enter a user's id: \c" && read USERID && echo "Running processes by $USERID" && ps -u $USERID
+;;
+5) echo "Total Numbers of users" &&  cat /etc/passwd | grep 2017FA | wc -l
+;;
+6)
+echo "Program exited"
+break
+;;
+*)
+echo "That is not a valid choice, try a number from 1 to 6."
+;;
+esac
+
+done
+exit 0
