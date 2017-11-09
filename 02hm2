@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# Author Huy Le
+
+# Homework 2: Menu
 clear
 while true; do
 echo

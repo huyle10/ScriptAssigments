@@ -1,0 +1,63 @@
+#!/bin/bash
+# Huy Le
+# Assignment 3
+# This is hm3 by Huy Le for ITMD417. The script provides 6 options
+
+clear
+while true; do
+	echo
+	echo "Please select a menu item"
+	echo
+	echo "1) Display files with a specific extension."
+	echo "2) Show system information"
+	echo "3) Remove .mp3, .jpg, .gif, .o and core file in /home/hle10/submit directory"
+	echo "4) Create a new directory with permission 777 with a stickybit on."	
+	echo "5) Run hm2 script."
+	echo "6) Email file /etc/os-release to your IIT email address."
+	echo "7) Exit program."
+	echo
+
+	echo -e "Enter selection: \c"
+	read OPTION
+	echo
+	case $OPTION in
+	1) 
+	echo -e "Enter a file extension: \c"
+	read USEREXT
+	ls | egrep '.$USEREXT'
+	;;
+	
+	2) 
+	bash reception
+	;;
+	
+	3) 
+	rm -f /home/hle10/submit/$(ls *.{mp3,gif,jpg,o} core)
+	;;
+	
+	4) 
+	echo -e "Enter a directory name: \c"
+	read USERDIR
+	mkdir $USERDIR && chmod 1777 $USERDIR
+	;;
+	
+	5)
+	bash hm2
+	;;
+	
+	6)
+	mail -s "hw3 email testing" hle10@hawk.iit.edu < /etc/os-release
+	;;
+	
+	7) echo "Program exited"
+	break
+	;;
+	
+	*)
+	echo "That is not a valid choice, try a number from 1 to 7."
+	;;
+	
+	esac
+
+done
+exit 0

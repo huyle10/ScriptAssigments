@@ -1,0 +1,28 @@
+#/bin/bash
+# Homework 5
+# Author: Huy Le
+# This script appends a new line to passwd file for a new user and set up new environment.
+
+clear
+while true; do
+	read -p "Enter username: " username
+	read -p "Enter password: " password
+	read -p "First name: " fname
+	read -p "Last name: " lname
+	read -p "User contact: " contact
+	egrep "^$username" ./passwd > /dev/null
+	if [ $? -eq 0 ]; then
+		echo "$username exists!"
+		break
+	else
+		mkdir /home/hle10/submit/$username
+		chmod 755 /home/hle10/submit/$username
+		mkdir /home/hle10/submit/$username/bin
+		chmod 755 /home/hle10/submit/$username/bin
+		echo "$username:`expr $(tail -1 passwd | cut -d ":" -f 3) + 1`:`expr $(tail -1 passwd | cut -d ":" -f 4) + 1`:$fname $lname, $contact:/home/hle10/submit/$username:/bin/bash" >> passwd
+		cp /etc/skel/.bash_profile /home/hle10/submit/$username/.
+	fi
+done
+
+exit 0
+
