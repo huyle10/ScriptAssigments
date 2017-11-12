@@ -1,3 +1,5 @@
+### -- Copy install.wim from an .iso file to C:\hyperv\
+
 ### -- Remove Unneeded Install Options
 get-windowsimage -imagepath c:\hyperv\install.wim
 remove-windowsimage -imagepath c:\hyperv\install.wim -index 1
