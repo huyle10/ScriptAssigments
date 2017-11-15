@@ -2,7 +2,7 @@
 
 # Author: Huy Le
 
-# Perl3: a program to simulate addusr command 
+# Perl3: a program to simulate addusr command (modifying copies of passwd and group
 
 my $pwd = `pwd`;
 chomp($pwd);
