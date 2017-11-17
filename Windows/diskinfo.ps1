@@ -19,6 +19,6 @@ param(
 )
 
 # Main Code here
-Get-CinInstance -ComputerName $computername -ClassName win32_logicaldisk -filter "DeviceID='c:'" -ComputerName DC |
+Get-CimInstance -ComputerName $computername -ClassName win32_logicaldisk -filter "DeviceID='c:'" |
   Select @{n="ComputerName";e={$_.PSComputername}},
          @{n="FreeGB";e={$_.Freespace / 1gb -as [int]}}
