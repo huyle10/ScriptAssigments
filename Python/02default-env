@@ -1,5 +1,7 @@
 #!/bin/python
 
+# Interacting with Environment variables,i.e. STAGE=PRODUCTION
+
 import os
 
 stage = (os.getenv("STAGE")or "development").upper()
