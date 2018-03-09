@@ -23,11 +23,12 @@ Display the result.
 # Hello screen
 Clear-Host
 
-Write-Host -NoNewline "Welcome to Geneva Trading, $env:UserName!"
+Write-Host "Welcome to Geneva Trading, $env:UserName!`n"
 
 $myuser = Read-Host "Please enter your username to be queried"
 
 # Peforming query
-Write-Host
+Write-Host "`nQuerying $myuser`n"
 
-Get-ADUser $myuser -Properties * | Select MemberOf
+# Security Group
+Get-ADUser $myuser -Properties * | Select-Object MemberOf
