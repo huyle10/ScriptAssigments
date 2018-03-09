@@ -29,6 +29,6 @@ $myuser = Read-Host "Please enter your username to be queried"
 
 # Peforming query
 Write-Host "`nQuerying $myuser`n"
-
+Write-Output "===========================================================" 
 # Security Group
-Get-ADUser $myuser -Properties * | Select-Object MemberOf
+Get-ADPrincipalGroupMembership $myuser | Select-Object name
