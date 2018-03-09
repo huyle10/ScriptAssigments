@@ -19,5 +19,15 @@ Using the hostname of the last logon for the user, the script checks if the user
 
 Display the result. 
 #>
- 
-Get-ADUser hle -Properties * 
+
+# Hello screen
+Clear-Host
+
+Write-Host -NoNewline "Welcome to Geneva Trading, $env:UserName!"
+
+$myuser = Read-Host "Please enter your username to be queried"
+
+# Peforming query
+Write-Host
+
+Get-ADUser $myuser -Properties * | Select MemberOf
