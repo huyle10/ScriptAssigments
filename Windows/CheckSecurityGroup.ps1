@@ -1,3 +1,4 @@
+Import-Module ActiveDirectory
 # Author: Huy Le
 
 # Intern Project: A powershell script to scan security group 
@@ -20,15 +21,50 @@ Using the hostname of the last logon for the user, the script checks if the user
 Display the result. 
 #>
 
+# Custom function
+function Get-ADUserLastLogon([string]$userName)
+{
+  $dcs = Get-ADDomainController -Filter {Name -like "*"}
+  $time = 0
+  foreach($dc in $dcs)
+  { 
+    $hostname = $dc.HostName
+    $user = Get-ADUser $userName | Get-ADObject -Properties lastLogon 
+    if($user.LastLogon -gt $time) 
+    {
+      $time = $user.LastLogon
+    }
+  }
+  $dt = [DateTime]::FromFileTime($time)
+  return $dt
+}
+
 # Hello screen
 Clear-Host
-
 Write-Host "Welcome to Geneva Trading, $env:UserName!`n"
-
 $myuser = Read-Host "Please enter your username to be queried"
 
-# Peforming query
-Write-Host "`nQuerying $myuser`n"
-Write-Output "===========================================================" 
-# Security Group
-Get-ADPrincipalGroupMembership $myuser | Select-Object name
+# Check if User exist
+$Results = [bool](Get-ADUser -Filter { SamAccountName -eq $myuser })
+If($Results -eq 0) 
+{ 
+    Write-Warning "Cannot find the AccountName '$myuser'. Please make sure that it exists." 
+}
+Else # Main script here
+{
+    # Peforming query
+    Write-Host "`nQuerying $myuser`n"
+
+    # Security Group
+    Write-Output "===========================================================`n" 
+    Write-Host "$myuser's Security Group Membership"
+    Get-ADPrincipalGroupMembership $myuser | Select-Object -Property name
+
+    # Last log-on
+    Write-Output "===========================================================`n"
+    $output = Get-ADUserLastLogon -UserName $myuser
+    # output to console        
+    Write-Host "$myuser last logged on at: $output"
+
+}
+
