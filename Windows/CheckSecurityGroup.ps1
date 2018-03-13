@@ -21,23 +21,31 @@ Using the hostname of the last logon for the user, the script checks if the user
 Display the result. 
 #>
 
-# Custom function
-function Get-ADUserLastLogon([string]$userName)
-{
-  $dcs = Get-ADDomainController -Filter {Name -like "*"}
-  $time = 0
-  foreach($dc in $dcs)
-  { 
-    $hostname = $dc.HostName
-    $user = Get-ADUser $userName | Get-ADObject -Properties lastLogon 
-    if($user.LastLogon -gt $time) 
+# Custom functions
+    # Function 1
+    function Get-ADUserLastLogon([string]$userName)
     {
-      $time = $user.LastLogon
+    $dcs = Get-ADDomainController -Filter {Name -like "*"}
+    $time = 0
+    foreach($dc in $dcs)
+    { 
+        $hostname = $dc.HostName
+        $user = Get-ADUser $userName | Get-ADObject -Properties lastLogon 
+        if($user.LastLogon -gt $time) 
+        {
+        $time = $user.LastLogon
+        }
     }
-  }
-  $dt = [DateTime]::FromFileTime($time)
-  return $dt
-}
+    $dt = [DateTime]::FromFileTime($time)
+    return $dt
+    }
+
+    #Function 2
+    Function Test-ADGroupMember($User,$Group) {
+        Trap { Return "error" }
+        If (Get-ADUser -Filter "memberOf -RecursiveMatch '$((Get-ADGroup $Group).DistinguishedName)'" -SearchBase $((Get-ADUser $User).DistinguishedName)) { $true }
+        Else { $false }
+    }
 
 # Hello screen
 Clear-Host
@@ -53,18 +61,23 @@ If($Results -eq 0)
 Else # Main script here
 {
     # Peforming query
-    Write-Host "`nQuerying $myuser`n"
+    Write-Output "`nQuerying $myuser`n"
 
     # Security Group
-    Write-Output "===========================================================`n" 
-    Write-Host "$myuser's Security Group Membership"
-    Get-ADPrincipalGroupMembership $myuser | Select-Object -Property name
+    Write-Output "`n===========================================================" 
+    Write-Output "$myuser's Security Group Membership"
+    Get-ADPrincipalGroupMembership $myuser | Select-Object -Property name | more
 
-    # Last log-on
-    Write-Output "===========================================================`n"
-    $output = Get-ADUserLastLogon -UserName $myuser
+    # Last log-on: Call Custom Function 1
+    Write-Output "`n==========================================================="
+    Write-Output "$myuser's Last Logon"
+    $output = Get-ADUserLastLogon -UserName $myuser 
     # output to console        
-    Write-Host "$myuser last logged on at: $output"
+    Write-Output "$output" | more
+    # Check if user belong to vpn_sg
+    Write-Output "`n==========================================================="
+    Write-Output "IS $myuser a remote user?"
+    Test-ADGroupMember "$myuser" "vpn_sg" | more
 
 }
 
