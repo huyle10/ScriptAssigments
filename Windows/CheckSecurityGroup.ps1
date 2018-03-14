@@ -80,5 +80,3 @@ Else # Main script here
     Test-ADGroupMember "$myuser" "vpn_sg" | more
 
 }
-
-Get-ADUser -Identity HawkingS | Move-ADObject -TargetPath "OU=Inactive Users,DC=contoso,DC=com"
