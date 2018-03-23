@@ -47,36 +47,59 @@ Display the result.
         Else { $false }
     }
 
-# Hello screen
-Clear-Host
-Write-Host "Welcome to Geneva Trading, $env:UserName!`n"
-$myuser = Read-Host "Please enter your username to be queried"
-
-# Check if User exist
-$Results = [bool](Get-ADUser -Filter { SamAccountName -eq $myuser })
-If($Results -eq 0) 
-{ 
-    Write-Warning "Cannot find the AccountName '$myuser'. Please make sure that it exists." 
-}
-Else # Main script here
+# Main Loop
+Do
 {
+    # Hello screen    
+    Clear-Host
+    Write-Output "Welcome to Geneva Trading, $env:UserName!`n"
+    $message = "Please enter the username (use first initial and last name e.g. hle)"
+    # Sub-Loop: check user existence 
+    Do
+    {
+        # Get a username from the user
+        $getUsername = Read-Host -prompt $message
+
+        Try
+        {
+            # Check if it's in AD
+            $checkUsername = Get-ADUser -Identity $getUsername -ErrorAction Stop
+        }
+        Catch
+        {
+            # Couldn't be found
+            Write-Warning -Message "Could not find a user with the username: $getUsername. Please check the spelling and try again."
+
+            # Loop de loop (Restart)
+            $getUsername = $null
+        }
+    }
+    While ($getUsername -eq $null)
+
+    # Main Script Start Here
+
     # Peforming query
-    Write-Output "`nQuerying $myuser`n"
+    Write-Output "`nQuerying $getUsername`n"
 
     # Security Group
     Write-Output "`n===========================================================" 
-    Write-Output "$myuser's Security Group Membership"
-    Get-ADPrincipalGroupMembership $myuser | Select-Object -Property name | more
+    Write-Output "$getUsername's Security Group Membership"
+    Get-ADPrincipalGroupMembership $getUsername | Select-Object -Property name | more
 
     # Last log-on: Call Custom Function 1
     Write-Output "`n==========================================================="
-    Write-Output "$myuser's Last Logon"
-    $output = Get-ADUserLastLogon -UserName $myuser 
+    Write-Output "$getUsername's Last Logon"
+    $output = Get-ADUserLastLogon -UserName $getUsername 
     # output to console        
     Write-Output "$output" | more
     # Check if user belong to vpn_sg
     Write-Output "`n==========================================================="
-    Write-Output "IS $myuser a remote user?"
-    Test-ADGroupMember "$myuser" "vpn_sg" | more
+    Write-Output "IS $getUsername a remote user?"
+    Test-ADGroupMember "$getUsername" "vpn_sg" | more
 
-}
+    $response = read-host "Do you want to Repeat?y/n"
+
+    $group = read-host "enter group name, eg:(core-tech_sg)"
+    Get-ADGroupMember -Recursive $group |% { get-aduser $_ -Properties otherMobile | Select Name,otherMobile} | sort Name | Out-Gridview -title "User Logins"
+
+} While ($response -eq "y")
