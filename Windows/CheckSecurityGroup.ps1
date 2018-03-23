@@ -100,6 +100,6 @@ Do
     $response = read-host "Do you want to Repeat?y/n"
 
     $group = read-host "enter group name, eg:(core-tech_sg)"
-    Get-ADGroupMember -Recursive $group |% { get-aduser $_ -Properties otherMobile | Select Name,otherMobile} | sort Name | Out-Gridview -title "User Logins"
+    Get-ADGroupMember -Recursive $group |% { get-aduser $_ -Properties otherMobile | Select-Object Name,otherMobile} | Sort-Object Name | Out-Gridview -title "User Logins"
 
 } While ($response -eq "y")
