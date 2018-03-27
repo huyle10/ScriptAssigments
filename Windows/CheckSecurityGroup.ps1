@@ -41,10 +41,13 @@ if (Test-Path $log) {
         $ADMembership = Get-ADPrincipalGroupMembership $getUsername | Select-Object -Property name  | More
         $Result1 = Write-Output $ADMembership
         
-        # Logging
+        # Print
+        Write-Output "$getUsername's Security Group Membership"
+        $Result1
+
+        # Log
         Write-Output "$getUsername is a Member of: " | Out-File $log -Append
         $ADMembership | Out-File $log -Append
-        return $Result1
     }
 
     # Function 2: Retrieve last logon detail
@@ -52,10 +55,13 @@ if (Test-Path $log) {
         # Command reference: https://confluence.genevatrading.com/display/OPS/Finding+what+machines+a+user+has+been+logging+into
         $global:logonDetail = Get-ADuser -filter * -Properties otherMobile | Select-Object Name,SamAccountName,otherMobile | Where-Object -Property SamAccountName -Match "\b$getUsername\b" | ForEach-Object{$_.otherMobile[0]}
         
-        # Logging
+        # Print
+        Write-Output "$getUsername's Last Logon"
+        $logonDetail
+
+        # Log
         Write-Output "$getUsername's Last Logon" | Out-File $log -Append
         $logonDetail | Out-File $log -Append
-        return $logonDetail
     }
 
     #Function 3
@@ -79,7 +85,7 @@ if (Test-Path $log) {
         }
     }
 
-# Main Execution
+# Main Loop
 Do
 {
     # Hello screen    
@@ -108,25 +114,23 @@ Do
     }
     While ($getUsername -eq $null)
 
-    # Main Script Start Here
-
-    # Peforming query
+################################################
+    # Main Execution
     Write-Output "`nQuerying $getUsername"
 
     # Function 1
     Write-Output "`n===========================================================" 
-    Write-Output "$getUsername's Security Group Membership"
     GetADMembership 
 
     # Function 2
     Write-Output "`n==========================================================="
-    Write-Output "$getUsername's Last Logon"
     GetLogonDetail
 
     # Function 3
     Write-Output "`n===========================================================" 
     checkRemote
 
+    # Repeat?
     Write-Output "`n===========================================================" 
     Write-Output "Log is saved in C:\security_group_check.log"
     $response = Read-Host -Prompt "Do you want to Repeat?y/n"
