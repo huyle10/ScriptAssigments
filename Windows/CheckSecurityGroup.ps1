@@ -36,32 +36,42 @@ if (Test-Path $log) {
 }
 
 # Functions
-    # Function 1: Get user AD Group Membership
+    # Function 1: Get user's AD Group Membership
     Function GetADMembership () {
-        $ADMembership = Get-ADPrincipalGroupMembership $getUsername | Select-Object -Property name  | More
-        $Result1 = Write-Output $ADMembership
-        
-        # Print
-        Write-Output "$getUsername's Security Group Membership"
-        $Result1
+        try {
+            $ADMembership = Get-ADPrincipalGroupMembership $getUsername | Select-Object -Property name  | More
+            $Result1 = Write-Output $ADMembership
+            
+            # Print
+            Write-Output "$getUsername's Security Group Membership"
+            $Result1
 
-        # Log
-        Write-Output "$getUsername is a Member of: " | Out-File $log -Append
-        $ADMembership | Out-File $log -Append
+            # Log
+            Write-Output "$getUsername is a Member of: " | Out-File $log -Append
+            $ADMembership | Out-File $log -Append
+        } catch {
+            Add-Content $log "Get user's AD Group Membership: $error " 
+            Write-Output "Error during get user's AD Group Membership step"
+        }
     }
 
     # Function 2: Retrieve last logon detail
     Function GetLogonDetail() {
-        # Command reference: https://confluence.genevatrading.com/display/OPS/Finding+what+machines+a+user+has+been+logging+into
-        $global:logonDetail = Get-ADuser -filter * -Properties otherMobile | Select-Object Name,SamAccountName,otherMobile | Where-Object -Property SamAccountName -Match "\b$getUsername\b" | ForEach-Object{$_.otherMobile[0]}
-        
-        # Print
-        Write-Output "$getUsername's Last Logon"
-        $logonDetail
+        try {
+            # Command reference: https://confluence.genevatrading.com/display/OPS/Finding+what+machines+a+user+has+been+logging+into
+            $global:logonDetail = Get-ADuser -filter * -Properties otherMobile | Select-Object Name,SamAccountName,otherMobile | Where-Object -Property SamAccountName -Match "\b$getUsername\b" | ForEach-Object{$_.otherMobile[0]}
+            
+            # Print
+            Write-Output "$getUsername's Last Logon"
+            $logonDetail
 
-        # Log
-        Write-Output "$getUsername's Last Logon" | Out-File $log -Append
-        $logonDetail | Out-File $log -Append
+            # Log
+            Write-Output "$getUsername's Last Logon" | Out-File $log -Append
+            $logonDetail | Out-File $log -Append
+        } catch {
+            Add-Content $log "Retrieve last logon detail error: $error " 
+            Write-Output "Error during retrieve last logon detail step"
+        }
     }
 
     #Function 3
