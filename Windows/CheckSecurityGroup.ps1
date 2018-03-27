@@ -21,8 +21,9 @@ Using the hostname of the last logon for the user, the script checks if the user
 Display the result. 
 #>
 
-#check if this script has run on this machine before (checking for log) - if not, create log file, if so, erase log contents
+################################################
 
+#check if this script has run on this machine before (checking for log) - if not, create log file, if so, erase log contents
 $log = "C:\security_group_check.log"
 if (Test-Path $log) {
     try{
@@ -35,35 +36,46 @@ if (Test-Path $log) {
 }
 
 # Functions
-    #Function 1
-    Function Test-ADGroupMember($User,$Group) {
-        Trap { Add-Content $log "Test-AdGroupMember Error: $error "  }
-        If (Get-ADUser -Filter "memberOf -RecursiveMatch '$((Get-ADGroup $Group).DistinguishedName)'" -SearchBase $((Get-ADUser $User).DistinguishedName)) { 
-            $true
-            Add-Content $log "$getUsername is a VPN user."
-        }
-        Else { 
-            $false 
-            Add-Content $log "$getUsername is not a VPN user."
-        }
+    # Function 1: Get user AD Group Membership
+    Function GetADMembership () {
+        $ADMembership = Get-ADPrincipalGroupMembership $getUsername | Select-Object -Property name  | More
+        $Result1 = Write-Output $ADMembership
+        
+        # Logging
+        Write-Output "$getUsername is a Member of: " | Out-File $log -Append
+        $ADMembership | Out-File $log -Append
+        return $Result1
     }
 
-    #Function 2
-    function checkRemote {
+    # Function 2: Retrieve last logon detail
+    Function GetLogonDetail() {
+        # Command reference: https://confluence.genevatrading.com/display/OPS/Finding+what+machines+a+user+has+been+logging+into
+        $global:logonDetail = Get-ADuser -filter * -Properties otherMobile | Select-Object Name,SamAccountName,otherMobile | Where-Object -Property SamAccountName -Match "\b$getUsername\b" | ForEach-Object{$_.otherMobile[0]}
+        
+        # Logging
+        Write-Output "$getUsername's Last Logon" | Out-File $log -Append
+        $logonDetail | Out-File $log -Append
+        return $logonDetail
+    }
+
+    #Function 3
+    function checkRemote (){
         try {
+        # Extract computername from Function 2 $logonDetail
+        $computer = $logonDetail.Substring(31,9)
         $group = [ADSI]"WinNT://GENEVATRADING/$computer/Remote Desktop Users, group"
         $members = $group.psbase.Invoke("Members")
         $RDG = $members | ForEach-Object { $_.GetType().InvokeMember("Name", 'GetProperty', $null, $_, $null) }
         if ($RDG -contains $getUsername) {
             Add-Content $log "Check Remote User Access: $getUsername is in Remote Desktop Group "
-            Write-Host "$getUsername is in Remote Desktop Group for $computer" -ForegroundColor Green
+            Write-Output "$getUsername is in Remote Desktop Group for $computer"
         } else {
             Add-Content $log "Check Remote User Acces: $getUsername is not in Remote Desktop Group for $computer "
-            Write-Host "$getUsername is NOT in Remote Desktop Group for $computer" -ForegroundColor Red
+            Write-Output "$getUsername is NOT in Remote Desktop Group for $computer"
         }
         } catch {
             Add-Content $log "Check Remote User Access Error: $error " 
-            Write-Host "Error during check remote desktop users step" -ForegroundColor Yellow
+            Write-Output "Error during check remote desktop users step"
         }
     }
 
@@ -101,32 +113,22 @@ Do
     # Peforming query
     Write-Output "`nQuerying $getUsername"
 
-    # Security Group
+    # Function 1
     Write-Output "`n===========================================================" 
     Write-Output "$getUsername's Security Group Membership"
-    Get-ADPrincipalGroupMembership $getUsername | Select-Object -Property name | more
+    GetADMembership 
 
-    # Check Last log-on: 
+    # Function 2
     Write-Output "`n==========================================================="
     Write-Output "$getUsername's Last Logon"
-    # Command reference: https://confluence.genevatrading.com/display/OPS/Finding+what+machines+a+user+has+been+logging+into
-    $logonDetail = Get-ADuser -filter * -Properties otherMobile | Select-Object Name,SamAccountName,otherMobile | Where-Object -Property SamAccountName -Match "\b$getUsername\b" | ForEach-Object{$_.otherMobile[0]}
-    Write-Output $logonDetail
+    GetLogonDetail
 
-    # Check if user belong to vpn_sg
-    Write-Output "`n==========================================================="
-    Write-Output "Is $getUsername a VPN user?"
-    # Call Function 2
-    Test-ADGroupMember "$getUsername" "vpn_sg"
-
-    # Check if user is added to remote user group in last logon computer
+    # Function 3
     Write-Output "`n===========================================================" 
-    # Extract computername from last logon
-    $computer = $logonDetail.Substring(31,9)
     checkRemote
 
     Write-Output "`n===========================================================" 
     Write-Output "Log is saved in C:\security_group_check.log"
-    $response = read-host "Do you want to Repeat?y/n"
+    $response = Read-Host -Prompt "Do you want to Repeat?y/n"
 
 } While ($response -eq "y")
