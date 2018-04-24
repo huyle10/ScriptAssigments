@@ -6,7 +6,7 @@
 # crontab */5 * * * * * /path/to/script.sh - automatically run script every 5 min - the script itself stops after 30s.
 
 # One time run: ./scriptname.sh
-# Cool trick - nohup to
+# Cool trick - nohup to run script as a process
 # nohup ./scriptname.sh 0<&- &>/dev/null &
 
 EMAIL="hle@genevatrading.com"
